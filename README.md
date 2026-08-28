@@ -24,6 +24,21 @@ Okullardaki öğretmenler, dersler, sınıflar ve özel derslikler arasındaki �
 
 ---
 
+## 📸 Ekran Görüntüleri
+
+<img width="1288" height="886" alt="Screenshot_5" src="https://github.com/user-attachments/assets/08fb9d74-c8fd-42a4-9a67-ed3dd85837a2" />
+
+<img width="1866" height="871" alt="Screenshot_6" src="https://github.com/user-attachments/assets/b82f2939-0bc0-41cb-9d45-5ca3b1143a96" />
+
+<img width="1857" height="832" alt="Screenshot_10" src="https://github.com/user-attachments/assets/451b1bd6-b505-4dd0-87a3-546b3b3898ca" />
+
+<img width="1913" height="871" alt="Screenshot_11" src="https://github.com/user-attachments/assets/34eae7ad-0a08-48d3-8916-8f10ebcab747" />
+
+<img width="1911" height="877" alt="Screenshot_12" src="https://github.com/user-attachments/assets/0956b802-f189-4b93-9d85-3e9dd8a2cea3" />
+
+<img width="1909" height="860" alt="Screenshot_13" src="https://github.com/user-attachments/assets/db0978c1-dd7b-4ffb-a51d-27eec770d9b7" />
+
+
 ## 🚀 Kurulum ve Çalıştırma
 
 ### Yöntem 1: Tek Tıkla Başlatma (Windows)
