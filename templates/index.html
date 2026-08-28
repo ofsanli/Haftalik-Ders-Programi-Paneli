@@ -1,0 +1,503 @@
+
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Haftalık Ders Programı Paneli</title>
+    <style>
+        :root {
+            --bg: #eef2f7;
+            --panel: #ffffff;
+            --text: #172033;
+            --muted: #667085;
+            --border: #d8dee9;
+            --blue: #2563eb;
+            --blue-dark: #1d4ed8;
+            --red: #dc2626;
+            --green: #16a34a;
+            font-family: Segoe UI, Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+
+        .app {
+            max-width: 1480px;
+            margin: 0 auto;
+            padding: 22px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        h1, h2, h3 { margin: 0; }
+        h1 { font-size: 28px; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 15px; }
+
+        .muted {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button, input, select {
+            min-height: 38px;
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        input, select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            padding: 0 10px;
+            background: #fff;
+        }
+
+        button {
+            border: 0;
+            padding: 0 12px;
+            color: #fff;
+            background: var(--blue);
+            cursor: pointer;
+        }
+
+        .nav-link {
+            display: inline-grid;
+            min-height: 38px;
+            place-items: center;
+            border-radius: 6px;
+            padding: 0 12px;
+            color: #fff;
+            background: #0f766e;
+            text-decoration: none;
+        }
+
+        button:hover { background: var(--blue-dark); }
+        button.danger { background: var(--red); }
+        button.subtle { background: #475569; }
+        button.small { min-height: 28px; padding: 0 8px; font-size: 12px; }
+
+        .status {
+            margin: 14px 0;
+            padding: 12px 14px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            color: #1e3a8a;
+            background: #eff6ff;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .stat span {
+            display: block;
+            color: #1e293b;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .stat strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 24px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 16px;
+        }
+
+        .sidebar {
+            display: grid;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .panel {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        form {
+            display: grid;
+            gap: 9px;
+            margin-top: 10px;
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .list {
+            display: grid;
+            gap: 7px;
+            max-height: 220px;
+            overflow: auto;
+            margin-top: 12px;
+            padding-right: 4px;
+        }
+
+        .list-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #f8fafc;
+        }
+
+        .list-row strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .list-row span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .workspace {
+            min-width: 0;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 220px;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 12px;
+        }
+
+        .schedule {
+            display: grid;
+            grid-template-columns: 62px repeat(5, minmax(145px, 1fr));
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .cell {
+            min-height: 68px;
+            padding: 9px;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .head, .hour {
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            color: #374151;
+            background: #f8fafc;
+        }
+
+        .lesson {
+            display: grid;
+            align-content: center;
+            gap: 4px;
+        }
+
+        .lesson strong { font-size: 14px; }
+        .lesson span { color: var(--muted); font-size: 12px; }
+        .empty { color: #a3aab7; }
+
+        @media (max-width: 1000px) {
+            .layout, .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+
+            .topbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <section class="topbar">
+            <div>
+                <h1>Haftalık Ders Programı Paneli</h1>
+                <p class="muted"><strong>Başlangıç Sırası:</strong> Önce öğretmenleri ekle, sonra dersleri gir, ardından Program ekranından sınıfı seçip program oluştur.</p>
+            </div>
+            <div class="actions">
+                <a class="nav-link" href="/panel">Gelişmiş Panele Git</a>
+            </div>
+        </section>
+
+        <div id="status" class="status">Hazır.</div>
+
+        <section class="stats">
+            <div class="stat"><span>👨‍🏫 Öğretmen</span><strong id="teacherCount">0</strong></div>
+            <div class="stat"><span>📚 Ders</span><strong id="lessonCount">0</strong></div>
+            <div class="stat"><span>🏫 Sınıf</span><strong id="classCount">0</strong></div>
+            <div class="stat"><span>⏰ Program Saati</span><strong id="scheduleCount">0</strong></div>
+        </section>
+
+        <section class="layout">
+            <section class="workspace">
+                <div class="panel">
+                    <div class="toolbar">
+                        <div>
+                            <h2>Haftalık Program</h2>
+                            <p id="selectedClassLabel" class="muted">Sınıf seçilmedi.</p>
+                        </div>
+                        <select id="classSelect"></select>
+                    </div>
+                    <div id="schedule" class="schedule"></div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        
+        const lessonColorPalette = {
+            "Türkçe": { bg: "#EFF6FF", border: "#3B82F6", text: "#1E40AF" },
+            "Matematik": { bg: "#FEF3C7", border: "#F59E0B", text: "#92400E" },
+            "İngilizce": { bg: "#ECFDF5", border: "#10B981", text: "#065F46" },
+            "Beden Eğitimi": { bg: "#F0FDF4", border: "#22C55E", text: "#166534" },
+            "Resim": { bg: "#F3E8FF", border: "#A855F7", text: "#6B21A8" },
+            "Görsel Sanatlar": { bg: "#F3E8FF", border: "#A855F7", text: "#6B21A8" },
+            "Müzik": { bg: "#FCE7F3", border: "#EC4899", text: "#9D174D" },
+            "Satranç": { bg: "#E0F2FE", border: "#0EA5E9", text: "#075985" },
+            "Fen Bilgisi": { bg: "#CCFBF1", border: "#14B8A6", text: "#115E59" },
+            "Hayat Bilgisi": { bg: "#FFEDD5", border: "#F97316", text: "#9A3412" },
+            "Sosyal Bilgiler": { bg: "#FAE8FF", border: "#D946EF", text: "#86198F" }
+        };
+
+        function applyLessonStyle(element, lessonName) {
+            if (!lessonName) {
+                element.style.background = "";
+                element.style.borderLeft = "";
+                return;
+            }
+            const color = lessonColorPalette[lessonName];
+            if (color) {
+                element.style.background = color.bg;
+                element.style.borderLeft = `4px solid ${color.border}`;
+            } else {
+                let hash = 0;
+                for (let i = 0; i < lessonName.length; i++) hash = lessonName.charCodeAt(i) + ((hash << 5) - hash);
+                const h = Math.abs(hash) % 360;
+                element.style.background = `hsl(${h}, 85%, 96%)`;
+                element.style.borderLeft = `4px solid hsl(${h}, 75%, 45%)`;
+            }
+        }
+
+        const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
+        const hours = [1, 2, 3, 4, 5, 6, 7, 8];
+        let state = { teachers: [], lessons: [], classes: [], schedule: [] };
+
+        function setStatus(message) {
+            document.getElementById("status").textContent = message;
+        }
+
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, options);
+            const text = await response.text();
+            let data = null;
+            if (text) {
+                try { data = JSON.parse(text); } catch { data = text; }
+            }
+            if (!response.ok) {
+                throw new Error(data?.detail || data?.message || data || "İşlem başarısız.");
+            }
+            return data;
+        }
+
+        async function loadAll(keepClass = true) {
+            const selectedBefore = document.getElementById("classSelect").value;
+            const [teachers, lessons, classes] = await Promise.all([
+                requestJson("/api/teachers"),
+                requestJson("/api/lessons"),
+                requestJson("/api/classes"),
+            ]);
+
+            state.teachers = teachers;
+            state.lessons = lessons;
+            state.classes = classes;
+            renderClassSelect(keepClass ? selectedBefore : "");
+            await loadSchedule();
+            renderLists();
+            renderStats();
+        }
+
+        async function loadSchedule() {
+            const classId = document.getElementById("classSelect").value;
+            const selected = state.classes.find(item => String(item.id) === classId);
+            document.getElementById("selectedClassLabel").textContent = selected ? `${selected.name} sinifi` : "Sınıf seçilmedi.";
+            state.schedule = classId ? await requestJson(`/api/schedule/${classId}`) : [];
+            renderSchedule();
+            renderStats();
+        }
+
+        function renderStats() {
+            document.getElementById("teacherCount").textContent = state.teachers.length;
+            document.getElementById("lessonCount").textContent = state.lessons.length;
+            document.getElementById("classCount").textContent = state.classes.length;
+            document.getElementById("scheduleCount").textContent = state.schedule.length;
+        }
+
+        function renderClassSelect(selectedValue) {
+            const select = document.getElementById("classSelect");
+            select.innerHTML = "";
+            for (const item of state.classes) {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.name;
+                select.appendChild(option);
+            }
+            if (state.classes.some(item => String(item.id) === selectedValue)) {
+                select.value = selectedValue;
+            }
+        }
+
+        function renderLists() {
+            renderList("teacherList", state.teachers, teacher => {
+                return {
+                    title: teacher.name,
+                    subtitle: `${teacher.branch} - max ${teacher.max_weekly_hours} saat`,
+                    onDelete: () => deleteItem(`/api/teachers/${teacher.id}`),
+                };
+            });
+
+            renderList("lessonList", state.lessons, lesson => {
+                return {
+                    title: lesson.name,
+                    subtitle: `${lesson.weekly_hours} saat - ${lesson.level_group}`,
+                    onDelete: () => deleteItem(`/api/lessons/${lesson.id}`),
+                };
+            });
+        }
+
+        function renderList(id, items, mapper) {
+            const container = document.getElementById(id);
+            if (!container) return;
+            container.innerHTML = "";
+            if (items.length === 0) {
+                container.innerHTML = "<div class='muted'>Kayıt yok.</div>";
+                return;
+            }
+            for (const item of items) {
+                const view = mapper(item);
+                const row = document.createElement("div");
+                row.className = "list-row";
+                row.innerHTML = `<div><strong>${view.title}</strong><span>${view.subtitle}</span></div>`;
+                const button = document.createElement("button");
+                button.className = "danger small";
+                button.type = "button";
+                button.textContent = "Sil";
+                button.addEventListener("click", view.onDelete);
+                row.appendChild(button);
+                container.appendChild(row);
+            }
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById("schedule");
+            const map = new Map(state.schedule.map(row => [`${row.day}-${row.hour}`, row]));
+            container.innerHTML = "";
+            container.appendChild(cell("Saat", "cell head"));
+            for (const day of days) container.appendChild(cell(day, "cell head"));
+
+            for (const hour of hours) {
+                container.appendChild(cell(hour, "cell hour"));
+                for (const day of days) {
+                    const row = map.get(`${day}-${hour}`);
+                    const lessonCell = document.createElement("div");
+                    lessonCell.className = "cell lesson";
+                    if (row) {
+                        applyLessonStyle(lessonCell, row.lesson_name);
+                        lessonCell.innerHTML = `<strong>${row.lesson_name}</strong><span>${row.teacher_name}</span>`;
+                    } else {
+                        lessonCell.innerHTML = "<span class='empty'>Boş</span>";
+                    }
+                    container.appendChild(lessonCell);
+                }
+            }
+        }
+
+        function cell(text, className) {
+            const item = document.createElement("div");
+            item.className = className;
+            item.textContent = text;
+            return item;
+        }
+
+        async function submitForm(event, url, mapper) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const data = Object.fromEntries(new FormData(form).entries());
+            await requestJson(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(mapper(data)),
+            });
+            form.reset();
+            setStatus("Kayıt eklendi.");
+            await loadAll();
+        }
+
+        async function deleteItem(url) {
+            try {
+                await requestJson(url, { method: "DELETE" });
+                setStatus("Kayıt silindi.");
+                await loadAll();
+            } catch (error) {
+                setStatus(error.message);
+            }
+        }
+
+        document.getElementById("classSelect").addEventListener("change", () => {
+            loadSchedule().catch(error => setStatus(error.message));
+        });
+
+        loadAll(false).catch(error => setStatus(error.message));
+    </script>
+</body>
+</html>

@@ -1,0 +1,1093 @@
+
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Haftalık Ders Programı Paneli</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+            --text: #182033;
+            --muted: #667085;
+            --line: #dde3ee;
+            --primary: #1f5eff;
+            --primary-soft: #eaf0ff;
+            --danger: #d92d20;
+            --ok: #039855;
+            font-family: Segoe UI, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        button, input, select { font: inherit; }
+        .shell { min-height: 100vh; }
+        .rail {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 18px;
+            border-bottom: 1px solid var(--line);
+            background: var(--surface);
+        }
+        .brand { min-width: 220px; }
+        .brand h1 { margin: 0; font-size: 21px; }
+        .brand p, .hint { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .nav button {
+            min-height: 42px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 0 14px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav button[data-view="dashboard"] { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .nav button[data-view="dashboard"].active, .nav button[data-view="dashboard"]:hover { background: #2563eb; color: #ffffff; border-color: #1d4ed8; }
+
+        .nav button[data-view="teachers"] { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .nav button[data-view="teachers"].active, .nav button[data-view="teachers"]:hover { background: #16a34a; color: #ffffff; border-color: #15803d; }
+
+        .nav button[data-view="lessons"] { background: #fff7ed; color: #c2410c; border-color: #ffedd5; }
+        .nav button[data-view="lessons"].active, .nav button[data-view="lessons"]:hover { background: #ea580c; color: #ffffff; border-color: #c2410c; }
+
+        .nav button[data-view="classes"] { background: #fefce8; color: #a16207; border-color: #fef08a; }
+        .nav button[data-view="classes"].active, .nav button[data-view="classes"]:hover { background: #ca8a04; color: #ffffff; border-color: #a16207; }
+
+        .nav button[data-view="rooms"] { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
+        .nav button[data-view="rooms"].active, .nav button[data-view="rooms"]:hover { background: #9333ea; color: #ffffff; border-color: #7e22ce; }
+
+        .nav button[data-view="availability"] { background: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+        .nav button[data-view="availability"].active, .nav button[data-view="availability"]:hover { background: #db2777; color: #ffffff; border-color: #be185d; }
+
+        .nav button[data-view="users"] { background: #f0fdfa; color: #0f766e; border-color: #99f6e4; }
+        .nav button[data-view="users"].active, .nav button[data-view="users"]:hover { background: #0d9488; color: #ffffff; border-color: #0f766e; }
+
+        .nav button[data-view="schedule"] { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        .nav button[data-view="schedule"].active, .nav button[data-view="schedule"]:hover { background: #0284c7; color: #ffffff; border-color: #0369a1; }
+
+        .menu-trigger { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+        .menu-group.open .menu-trigger, .menu-trigger:hover { background: #7c3aed; color: #ffffff; border-color: #6d28d9; }
+
+        .menu-group { position: relative; }
+        .menu-popover {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 46px;
+            z-index: 10;
+            min-width: 190px;
+            padding: 8px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            box-shadow: 0 12px 28px rgba(16, 24, 40, .12);
+        }
+        .menu-group.open .menu-popover { display: grid; gap: 6px; }
+        .menu-popover button { text-align: left; }
+        .content { padding: 22px; min-width: 0; }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        h2, h3 { margin: 0; }
+        h2 { font-size: 26px; }
+        h3 { font-size: 17px; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            min-height: 38px;
+            border: 0;
+            border-radius: 8px;
+            padding: 0 14px;
+            color: #fff;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        .btn.secondary { color: #344054; border: 1px solid var(--line); background: var(--surface); }
+        a.btn { display: inline-grid; place-items: center; text-decoration: none; }
+        .btn.danger { background: var(--danger); }
+        .btn.small { min-height: 30px; padding: 0 10px; font-size: 12px; }
+        .notice {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border: 1px solid #c8d7ff;
+            border-radius: 8px;
+            color: #1849a9;
+            background: var(--primary-soft);
+        }
+        .cards { display: grid; grid-template-columns: repeat(4, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .card, .panel {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+        .card { padding: 14px; }
+        .card span { color: #1e293b; font-size: 14px; font-weight: 700; }
+        .card strong { display: block; margin-top: 6px; font-size: 28px; }
+        .view { display: none; }
+        .view.active { display: block; }
+        .grid-two { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; }
+        .panel { padding: 16px; }
+        form { display: grid; gap: 10px; margin-top: 12px; }
+        input, select {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0 11px;
+            background: #fff;
+        }
+        .split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+        .table-wrap.tall { max-height: 520px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #edf0f5; text-align: left; font-size: 14px; }
+        th { color: #475467; background: var(--surface-2); }
+        tr:last-child td { border-bottom: 0; }
+        .empty { color: var(--muted); }
+        .program-tools {
+            display: grid;
+            grid-template-columns: minmax(180px, 240px) auto auto auto auto minmax(0, 1fr);
+            align-items: end;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .schedule {
+            display: grid;
+            grid-template-columns: 70px repeat(5, minmax(150px, 1fr));
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+        }
+        .cell {
+            min-height: 72px;
+            padding: 10px;
+            border-right: 1px solid #edf0f5;
+            border-bottom: 1px solid #edf0f5;
+        }
+        .head, .hour { display: grid; place-items: center; font-weight: 700; color: #475467; background: var(--surface-2); }
+        .lesson { display: grid; align-content: center; gap: 4px; }
+        .lesson strong { font-size: 14px; }
+        .lesson span { color: var(--muted); font-size: 12px; }
+        @media (max-width: 980px) {
+            .rail { align-items: stretch; flex-direction: column; }
+            .nav { justify-content: stretch; }
+            .nav button, .menu-group { flex: 1 1 auto; }
+            .menu-popover { position: static; margin-top: 6px; box-shadow: none; }
+            .topbar, .grid-two, .program-tools { grid-template-columns: 1fr; display: grid; }
+            .cards { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <aside class="rail">
+            <div class="brand">
+                <h1 style="display: inline-flex; align-items: center; gap: 8px; margin: 0; line-height: 1.2;">
+                    <span style="font-size: 22px; display: inline-flex; align-items: center; justify-content: center;">📖</span>
+                    <span>Haftalık Ders Programı Paneli</span>
+                </h1>
+            </div>
+            <nav class="nav">
+                <button class="active" data-view="dashboard">Genel Bakış</button>
+                <button data-view="teachers">Öğretmenler</button>
+                <button data-view="lessons">Dersler</button>
+                <button data-view="classes">Sınıflar</button>
+                <button data-view="rooms">Derslikler</button>
+                <button data-view="availability">Uygunluk</button>
+                <button data-view="users">Kullanıcılar</button>
+                <button data-view="schedule">Program</button>
+                <div class="menu-group" id="reportsMenu">
+                    <button class="menu-trigger" type="button">Raporlar</button>
+                    <div class="menu-popover">
+                        <button data-view="teacherLoads">Öğretmen Yükleri</button>
+                        <button data-view="teacherSchedule">Öğretmen Programı</button>
+                        <button data-view="lessonDistribution">Ders Dağılımı</button>
+                        <button data-view="qualityReport">Kalite Puanı</button>
+                        <button data-view="validationReport">Kontrol Raporu</button>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <section class="content">
+            <div class="topbar">
+                <div>
+                    <h2 id="pageTitle">Genel Bakış</h2>
+                    <p class="hint"><strong>Başlangıç Sırası:</strong> Önce öğretmenleri ekle, sonra dersleri gir, ardından Program ekranından sınıfı seçip program oluştur.</p>
+                </div>
+                <div class="actions">
+                    <a class="btn secondary" href="/">Özet Ekran</a>
+                    <button class="btn secondary" id="refreshBtn">Verileri Yenile</button>
+                </div>
+            </div>
+
+            <div class="notice" id="notice">Hazır.</div>
+
+            <section class="cards">
+                <div class="card"><span>👨‍🏫 Öğretmen</span><strong id="teacherCount">0</strong></div>
+                <div class="card"><span>📚 Ders</span><strong id="lessonCount">0</strong></div>
+                <div class="card"><span>🏫 Sınıf</span><strong id="classCount">0</strong></div>
+                <div class="card"><span>⏰ Program Saati</span><strong id="scheduleCount">0</strong></div>
+            </section>
+
+            <section class="view active" id="dashboard">
+                <div class="panel">
+                    <h3>Başlangıç Sırası</h3>
+                    <p class="hint">Önce öğretmenleri ekle, sonra dersleri gir, ardından Program ekranından sınıfı seçip program oluştur.</p>
+                </div>
+            </section>
+
+            <section class="view" id="teachers">
+                <div class="grid-two">
+                    <div class="panel">
+                        <h3>Öğretmen Ekle</h3>
+                        <form id="teacherForm">
+                            <input name="name" placeholder="Ad Soyad" required minlength="2">
+                            <input name="branch" placeholder="Branş" required minlength="2">
+                            <input name="max_weekly_hours" type="number" min="1" max="40" value="24" required>
+                            <button class="btn" type="submit">Kaydet</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h3>Kayıtlı Öğretmenler</h3>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Ad Soyad</th><th>Branş</th><th>Haftalık Limit</th><th></th></tr></thead>
+                                <tbody id="teacherRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="lessons">
+                <div class="grid-two">
+                    <div class="panel">
+                        <h3>Ders Ekle</h3>
+                        <form id="lessonForm">
+                            <input name="name" placeholder="Ders adı" required minlength="2">
+                            <div class="split">
+                                <input name="weekly_hours" type="number" min="1" max="10" value="2" required>
+                                <select name="level_group">
+                                    <option>İlkokul</option>
+                                    <option selected>Ortaokul-Lise</option>
+                                </select>
+                            </div>
+                            <button class="btn" type="submit">Kaydet</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h3>Kayıtlı Dersler</h3>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Ders</th><th>Saat</th><th>Kademe</th><th></th></tr></thead>
+                                <tbody id="lessonRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="classes">
+                <div class="panel">
+                    <h3>Sınıflar</h3>
+                    <p class="hint">Sistemde 1. siniftan 12. sinifa kadar A, B ve C subeleri hazir gelir.</p>
+                    <div class="table-wrap tall">
+                        <table>
+                            <thead><tr><th>Sınıf</th><th>Seviye</th><th>Şube</th><th>Program Saati</th><th>Durum</th></tr></thead>
+                            <tbody id="classRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="rooms">
+                <div class="grid-two">
+                    <div class="panel">
+                        <h3>Derslik Ekle</h3>
+                        <form id="roomForm">
+                            <input name="name" placeholder="Derslik adı" required minlength="2">
+                            <select name="room_type">
+                                <option>Genel</option>
+                                <option>Beden Eğitimi</option>
+                                <option>Resim</option>
+                                <option>Muzik</option>
+                                <option>Satranc</option>
+                                <option>Fen Bilgisi</option>
+                            </select>
+                            <button class="btn" type="submit">Kaydet</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h3>Derslikler</h3>
+                        <div class="table-wrap tall">
+                            <table>
+                                <thead><tr><th>Ad</th><th>Tur</th><th></th></tr></thead>
+                                <tbody id="roomRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="availability">
+                <div class="grid-two">
+                    <div class="panel">
+                        <h3>Öğretmen Uygun Olmayan Saat</h3>
+                        <form id="availabilityForm">
+                            <select name="teacher_id" id="availabilityTeacherSelect"></select>
+                            <div class="split">
+                                <select name="day">
+                                    <option>Pazartesi</option>
+                                    <option>Salı</option>
+                                    <option>Çarşamba</option>
+                                    <option>Perşembe</option>
+                                    <option>Cuma</option>
+                                </select>
+                                <select name="hour">
+                                    <option>1</option><option>2</option><option>3</option><option>4</option>
+                                    <option>5</option><option>6</option><option>7</option><option>8</option>
+                                </select>
+                            </div>
+                            <button class="btn" type="submit">Kaydet</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h3>Uygun Olmayan Saatler</h3>
+                        <div class="table-wrap tall">
+                            <table>
+                                <thead><tr><th>Öğretmen</th><th>Branş</th><th>Gün</th><th>Saat</th><th></th></tr></thead>
+                                <tbody id="availabilityRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="users">
+                <div class="grid-two">
+                    <div class="panel">
+                        <h3>Kullanıcı Ekle</h3>
+                        <form id="userForm">
+                            <input name="name" placeholder="Kullanıcı adı" required minlength="2">
+                            <select name="role">
+                                <option>Admin</option>
+                                <option>Öğretmen</option>
+                            </select>
+                            <button class="btn" type="submit">Kaydet</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h3>Kullanıcı Rolleri</h3>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Ad</th><th>Rol</th><th></th></tr></thead>
+                                <tbody id="userRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="schedule">
+                <div class="panel">
+                    <div class="program-tools">
+                        <div>
+                            <label class="hint">Sınıf</label>
+                            <select id="classSelect"></select>
+                        </div>
+                        <button class="btn" id="generateBtn">Program Oluştur</button>
+                        <button class="btn" id="generateAllBtn">Tüm Sınıfları Oluştur</button>
+                        <button class="btn secondary" id="clearBtn">Tabloyu Temizle</button>
+                        <button class="btn secondary" id="clearAllBtn">Tümünü Temizle</button>
+                        <p class="hint" id="selectedClassText">Sınıf seçilmedi.</p>
+                    </div>
+                    <div class="program-tools">
+                        <button class="btn secondary" id="classExcelBtn">Excel İndir</button>
+                        <button class="btn secondary" id="classPdfBtn">PDF İndir</button>
+                        <select id="moveFromDay"></select>
+                        <select id="moveFromHour"></select>
+                        <select id="moveToDay"></select>
+                        <select id="moveToHour"></select>
+                        <button class="btn secondary" id="moveBtn">Dersi Taşı</button>
+                    </div>
+                    <div class="schedule" id="scheduleGrid"></div>
+                </div>
+            </section>
+
+            <section class="view" id="teacherLoads">
+                <div class="panel">
+                    <h3>Öğretmen Yükleri</h3>
+                    <p class="hint">Öğretmenlerin haftalık atanmış ders saatleri ve limitleri.</p>
+                    <div class="table-wrap tall">
+                        <table>
+                            <thead><tr><th>Öğretmen</th><th>Branş</th><th>Atanan Saat</th><th>Limit</th><th>Durum</th></tr></thead>
+                            <tbody id="teacherLoadRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="teacherSchedule">
+                <div class="panel">
+                    <h3>Öğretmen Haftalık Programı</h3>
+                    <p class="hint">Bir öğretmen seçerek sadece o öğretmene ait haftalık ders programını gör.</p>
+                    <div class="program-tools">
+                        <div>
+                            <label class="hint">Öğretmen</label>
+                            <select id="teacherScheduleSelect"></select>
+                        </div>
+                        <button class="btn secondary" id="teacherExcelBtn">Excel İndir</button>
+                        <button class="btn secondary" id="teacherPdfBtn">PDF İndir</button>
+                        <p class="hint" id="teacherScheduleText">Öğretmen seçilmedi.</p>
+                    </div>
+                    <div class="schedule" id="teacherScheduleGrid"></div>
+                </div>
+            </section>
+
+            <section class="view" id="lessonDistribution">
+                <div class="panel">
+                    <h3>Ders Dağılımı</h3>
+                    <p class="hint">Derslerin haftalik saatleri ve programda kaç saat kullanıldığı.</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Ders</th><th>Kademe</th><th>Haftalık Saat</th><th>Toplam Atama</th></tr></thead>
+                            <tbody id="lessonSummaryRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="qualityReport">
+                <div class="panel">
+                    <h3>Program Kalite Puanı</h3>
+                    <p class="hint">Öğretmen boşlukları, yoğun günler ve ders dağılımı üzerinden genel kaliteyi hesaplar.</p>
+                    <div class="cards">
+                        <div class="card"><span>Kalite Puanı</span><strong id="qualityScore">0</strong></div>
+                        <div class="card"><span>Öğretmen Boşluğu</span><strong id="qualityGaps">0</strong></div>
+                        <div class="card"><span>Yoğun Gün</span><strong id="qualityHeavyDays">0</strong></div>
+                        <div class="card"><span>Ders Uyarısı</span><strong id="qualityLessonWarnings">0</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view" id="validationReport">
+                <div class="panel">
+                    <h3>Kontrol Raporu</h3>
+                    <p class="hint">Programdaki eksik saatleri, öğretmen çakışmalarını ve limit aşımlarını kontrol eder.</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Kontrol</th><th>Sonuç</th><th>Detay</th></tr></thead>
+                            <tbody id="validationRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        
+        const lessonColorPalette = {
+            "Türkçe": { bg: "#EFF6FF", border: "#3B82F6", text: "#1E40AF" },
+            "Matematik": { bg: "#FEF3C7", border: "#F59E0B", text: "#92400E" },
+            "İngilizce": { bg: "#ECFDF5", border: "#10B981", text: "#065F46" },
+            "Beden Eğitimi": { bg: "#F0FDF4", border: "#22C55E", text: "#166534" },
+            "Resim": { bg: "#F3E8FF", border: "#A855F7", text: "#6B21A8" },
+            "Görsel Sanatlar": { bg: "#F3E8FF", border: "#A855F7", text: "#6B21A8" },
+            "Müzik": { bg: "#FCE7F3", border: "#EC4899", text: "#9D174D" },
+            "Satranç": { bg: "#E0F2FE", border: "#0EA5E9", text: "#075985" },
+            "Fen Bilgisi": { bg: "#CCFBF1", border: "#14B8A6", text: "#115E59" },
+            "Hayat Bilgisi": { bg: "#FFEDD5", border: "#F97316", text: "#9A3412" },
+            "Sosyal Bilgiler": { bg: "#FAE8FF", border: "#D946EF", text: "#86198F" }
+        };
+
+        function applyLessonStyle(element, lessonName) {
+            if (!lessonName) {
+                element.style.background = "";
+                element.style.borderLeft = "";
+                return;
+            }
+            const color = lessonColorPalette[lessonName];
+            if (color) {
+                element.style.background = color.bg;
+                element.style.borderLeft = `4px solid ${color.border}`;
+            } else {
+                let hash = 0;
+                for (let i = 0; i < lessonName.length; i++) hash = lessonName.charCodeAt(i) + ((hash << 5) - hash);
+                const h = Math.abs(hash) % 360;
+                element.style.background = `hsl(${h}, 85%, 96%)`;
+                element.style.borderLeft = `4px solid hsl(${h}, 75%, 45%)`;
+            }
+        }
+
+        const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
+        const hours = [1,2,3,4,5,6,7,8];
+        const titles = {
+            dashboard: "Genel Bakış",
+            teachers: "Öğretmenler",
+            lessons: "Dersler",
+            classes: "Sınıflar",
+            rooms: "Derslikler",
+            availability: "Uygunluk",
+            users: "Kullanıcılar",
+            schedule: "Program",
+            teacherLoads: "Öğretmen Yükleri",
+            teacherSchedule: "Öğretmen Programı",
+            lessonDistribution: "Ders Dağılımı",
+            qualityReport: "Kalite Puanı",
+            validationReport: "Kontrol Raporu"
+        };
+        let state = {
+            teachers: [],
+            lessons: [],
+            classes: [],
+            rooms: [],
+            availability: [],
+            users: [],
+            schedule: [],
+            classStatus: [],
+            teacherLoads: [],
+            teacherSchedule: [],
+            teacherScheduleTeacher: null,
+            lessonSummary: [],
+            qualityReport: null,
+            validationReport: null
+        };
+
+        function notice(text) { document.getElementById("notice").textContent = text; }
+
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, options);
+            const text = await response.text();
+            let data = null;
+            if (text) { try { data = JSON.parse(text); } catch { data = text; } }
+            if (!response.ok) throw new Error(data?.detail || data?.message || data || "İşlem başarısız.");
+            return data;
+        }
+
+        async function loadData(keepClass = true) {
+            const selected = document.getElementById("classSelect")?.value || "";
+            const [teachers, lessons, classes, rooms, availability, users, classStatus, teacherLoads, lessonSummary, qualityReport, validationReport] = await Promise.all([
+                requestJson("/api/teachers"),
+                requestJson("/api/lessons"),
+                requestJson("/api/classes"),
+                requestJson("/api/rooms"),
+                requestJson("/api/teacher-unavailability"),
+                requestJson("/api/users"),
+                requestJson("/api/class-status"),
+                requestJson("/api/teacher-loads"),
+                requestJson("/api/lesson-summary"),
+                requestJson("/api/quality-report"),
+                requestJson("/api/validation-report"),
+            ]);
+            state.teachers = teachers;
+            state.lessons = lessons;
+            state.classes = classes;
+            state.rooms = rooms;
+            state.availability = availability;
+            state.users = users;
+            state.classStatus = classStatus;
+            state.teacherLoads = teacherLoads;
+            state.lessonSummary = lessonSummary;
+            state.qualityReport = qualityReport;
+            state.validationReport = validationReport;
+            renderClassSelect(keepClass ? selected : "");
+            renderTeacherScheduleSelect();
+            renderAvailabilityTeacherSelect();
+            renderMoveSelects();
+            await loadSchedule();
+            await loadTeacherSchedule();
+            renderAll();
+        }
+
+        async function loadSchedule() {
+            const classId = document.getElementById("classSelect").value;
+            state.schedule = classId ? await requestJson(`/api/schedule/${classId}`) : [];
+        }
+
+        function renderAll() {
+            document.getElementById("teacherCount").textContent = state.teachers.length;
+            document.getElementById("lessonCount").textContent = state.lessons.length;
+            document.getElementById("classCount").textContent = state.classes.length;
+            document.getElementById("scheduleCount").textContent = state.schedule.length;
+            renderTeachers();
+            renderLessons();
+            renderClasses();
+            renderRooms();
+            renderAvailability();
+            renderUsers();
+            renderTeacherLoads();
+            renderTeacherSchedule();
+            renderLessonSummary();
+            renderQualityReport();
+            renderValidationReport();
+            renderSchedule();
+        }
+
+        function renderClassSelect(selected) {
+            const select = document.getElementById("classSelect");
+            select.innerHTML = "";
+            for (const item of state.classes) {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.name;
+                select.appendChild(option);
+            }
+            if (state.classes.some(item => String(item.id) === selected)) select.value = selected;
+        }
+
+        function renderTeachers() {
+            const body = document.getElementById("teacherRows");
+            body.innerHTML = state.teachers.length ? "" : "<tr><td colspan='4' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.teachers) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.branch}</td><td>${item.max_weekly_hours}</td><td><button class="btn danger small">Sil</button></td>`;
+                row.querySelector("button").addEventListener("click", () => deleteItem(`/api/teachers/${item.id}`));
+                body.appendChild(row);
+            }
+        }
+
+        function renderLessons() {
+            const body = document.getElementById("lessonRows");
+            body.innerHTML = state.lessons.length ? "" : "<tr><td colspan='4' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.lessons) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.weekly_hours}</td><td>${item.level_group}</td><td><button class="btn danger small">Sil</button></td>`;
+                row.querySelector("button").addEventListener("click", () => deleteItem(`/api/lessons/${item.id}`));
+                body.appendChild(row);
+            }
+        }
+
+        function renderClasses() {
+            const body = document.getElementById("classRows");
+            body.innerHTML = state.classStatus.length ? "" : "<tr><td colspan='5' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.classStatus) {
+                const status = item.assigned_hours === 40 ? "Tamam" : `${40 - item.assigned_hours} saat eksik`;
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.grade}</td><td>${item.section}</td><td>${item.assigned_hours}</td><td>${status}</td>`;
+                body.appendChild(row);
+            }
+        }
+
+        function renderRooms() {
+            const body = document.getElementById("roomRows");
+            body.innerHTML = state.rooms.length ? "" : "<tr><td colspan='3' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.rooms) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.room_type}</td><td><button class="btn danger small">Sil</button></td>`;
+                row.querySelector("button").addEventListener("click", () => deleteItem(`/api/rooms/${item.id}`));
+                body.appendChild(row);
+            }
+        }
+
+        function renderAvailabilityTeacherSelect() {
+            const select = document.getElementById("availabilityTeacherSelect");
+            const selected = select.value;
+            select.innerHTML = "";
+            for (const item of state.teachers) {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = `${item.name} - ${item.branch}`;
+                select.appendChild(option);
+            }
+            if (state.teachers.some(item => String(item.id) === selected)) select.value = selected;
+        }
+
+        function renderAvailability() {
+            const body = document.getElementById("availabilityRows");
+            body.innerHTML = state.availability.length ? "" : "<tr><td colspan='5' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.availability) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.teacher_name}</td><td>${item.branch}</td><td>${item.day}</td><td>${item.hour}</td><td><button class="btn danger small">Sil</button></td>`;
+                row.querySelector("button").addEventListener("click", () => deleteItem(`/api/teacher-unavailability/${item.id}`));
+                body.appendChild(row);
+            }
+        }
+
+        function renderUsers() {
+            const body = document.getElementById("userRows");
+            body.innerHTML = state.users.length ? "" : "<tr><td colspan='3' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.users) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.role}</td><td><button class="btn danger small">Sil</button></td>`;
+                row.querySelector("button").addEventListener("click", () => deleteItem(`/api/users/${item.id}`));
+                body.appendChild(row);
+            }
+        }
+
+        function renderTeacherLoads() {
+            const body = document.getElementById("teacherLoadRows");
+            body.innerHTML = state.teacherLoads.length ? "" : "<tr><td colspan='5' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.teacherLoads) {
+                const remaining = item.max_weekly_hours - item.assigned_hours;
+                const status = remaining >= 0 ? `${remaining} saat boş` : "Limit aşıldı";
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.branch}</td><td>${item.assigned_hours}</td><td>${item.max_weekly_hours}</td><td>${status}</td>`;
+                body.appendChild(row);
+            }
+        }
+
+        function renderTeacherScheduleSelect() {
+            const select = document.getElementById("teacherScheduleSelect");
+            const selected = select.value;
+            select.innerHTML = "";
+            for (const item of state.teachers) {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = `${item.name} - ${item.branch}`;
+                select.appendChild(option);
+            }
+            if (state.teachers.some(item => String(item.id) === selected)) select.value = selected;
+        }
+
+        function renderMoveSelects() {
+            fillSelect("moveFromDay", days);
+            fillSelect("moveToDay", days);
+            fillSelect("moveFromHour", hours);
+            fillSelect("moveToHour", hours);
+        }
+
+        function fillSelect(id, items) {
+            const select = document.getElementById(id);
+            if (!select || select.options.length) return;
+            for (const item of items) {
+                const option = document.createElement("option");
+                option.value = item;
+                option.textContent = item;
+                select.appendChild(option);
+            }
+        }
+
+        async function loadTeacherSchedule() {
+            const select = document.getElementById("teacherScheduleSelect");
+            const teacherId = select.value;
+            if (!teacherId) {
+                state.teacherSchedule = [];
+                state.teacherScheduleTeacher = null;
+                return;
+            }
+            const result = await requestJson(`/api/teacher-schedule/${teacherId}`);
+            state.teacherSchedule = result.schedule;
+            state.teacherScheduleTeacher = result.teacher;
+        }
+
+        function renderTeacherSchedule() {
+            const teacher = state.teacherScheduleTeacher;
+            document.getElementById("teacherScheduleText").textContent = teacher
+                ? `${teacher.name} - ${teacher.branch} (${state.teacherSchedule.length} saat)`
+                : "Öğretmen seçilmedi.";
+
+            const grid = document.getElementById("teacherScheduleGrid");
+            const map = new Map(state.teacherSchedule.map(row => [`${row.day}-${row.hour}`, row]));
+            grid.innerHTML = "";
+            grid.appendChild(cell("Saat", "cell head"));
+            for (const day of days) grid.appendChild(cell(day, "cell head"));
+            for (const hour of hours) {
+                grid.appendChild(cell(hour, "cell hour"));
+                for (const day of days) {
+                    const row = map.get(`${day}-${hour}`);
+                    const div = document.createElement("div");
+                    div.className = "cell lesson";
+                    if (row) {
+                        applyLessonStyle(div, row.lesson_name);
+                        div.innerHTML = `<strong>${row.class_name}</strong><span>${row.lesson_name}${row.room_name ? " - " + row.room_name : ""}</span>`;
+                    } else {
+                        div.innerHTML = "<span class='empty'>Boş</span>";
+                    }
+                    grid.appendChild(div);
+                }
+            }
+        }
+
+        function renderLessonSummary() {
+            const body = document.getElementById("lessonSummaryRows");
+            body.innerHTML = state.lessonSummary.length ? "" : "<tr><td colspan='4' class='empty'>Kayıt yok.</td></tr>";
+            for (const item of state.lessonSummary) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.level_group}</td><td>${item.weekly_hours}</td><td>${item.assigned_hours}</td>`;
+                body.appendChild(row);
+            }
+        }
+
+        function renderQualityReport() {
+            const report = state.qualityReport || {};
+            document.getElementById("qualityScore").textContent = report.score ?? 0;
+            document.getElementById("qualityGaps").textContent = report.teacher_gaps ?? 0;
+            document.getElementById("qualityHeavyDays").textContent = report.teacher_heavy_days ?? 0;
+            document.getElementById("qualityLessonWarnings").textContent = report.lesson_balance_warnings ?? 0;
+        }
+
+        function renderValidationReport() {
+            const report = state.validationReport || {};
+            const checks = [
+                {
+                    name: "Toplam ders saati",
+                    ok: report.total_hours === 1440,
+                    detail: `${report.total_hours || 0} / 1440`
+                },
+                {
+                    name: "40 saat olmayan sınıflar",
+                    ok: (report.class_status || []).length === 0,
+                    detail: `${(report.class_status || []).length} kayıt`
+                },
+                {
+                    name: "Sınıf saat çakışması",
+                    ok: (report.class_conflicts || []).length === 0,
+                    detail: `${(report.class_conflicts || []).length} çakışma`
+                },
+                {
+                    name: "Öğretmen saat çakışmasi",
+                    ok: (report.teacher_conflicts || []).length === 0,
+                    detail: `${(report.teacher_conflicts || []).length} çakışma`
+                },
+                {
+                    name: "Öğretmen limit aşımı",
+                    ok: (report.teacher_overload || []).length === 0,
+                    detail: `${(report.teacher_overload || []).length} öğretmen`
+                },
+                {
+                    name: "Derslik çakışmasi",
+                    ok: (report.room_conflicts || []).length === 0,
+                    detail: `${(report.room_conflicts || []).length} çakışma`
+                },
+                {
+                    name: "Öğretmen uygunluk çakışmasi",
+                    ok: (report.teacher_unavailable_conflicts || []).length === 0,
+                    detail: `${(report.teacher_unavailable_conflicts || []).length} çakışma`
+                }
+            ];
+
+            const body = document.getElementById("validationRows");
+            body.innerHTML = "";
+            for (const item of checks) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${item.name}</td><td>${item.ok ? "Tamam" : "Dikkat"}</td><td>${item.detail}</td>`;
+                body.appendChild(row);
+            }
+        }
+
+        function renderSchedule() {
+            const classId = document.getElementById("classSelect").value;
+            const selectedClass = state.classes.find(item => String(item.id) === classId);
+            document.getElementById("selectedClassText").textContent = selectedClass ? `${selectedClass.name} sınıfı seçili.` : "Sınıf seçilmedi.";
+            const grid = document.getElementById("scheduleGrid");
+            const map = new Map(state.schedule.map(row => [`${row.day}-${row.hour}`, row]));
+            grid.innerHTML = "";
+            grid.appendChild(cell("Saat", "cell head"));
+            for (const day of days) grid.appendChild(cell(day, "cell head"));
+            for (const hour of hours) {
+                grid.appendChild(cell(hour, "cell hour"));
+                for (const day of days) {
+                    const row = map.get(`${day}-${hour}`);
+                    const div = document.createElement("div");
+                    div.className = "cell lesson";
+                    div.innerHTML = row ? `<strong>${row.lesson_name}</strong><span>${row.teacher_name}${row.room_name ? " - " + row.room_name : ""}</span>` : "<span class='empty'>Boş</span>";
+                    grid.appendChild(div);
+                }
+            }
+        }
+
+        function cell(text, className) {
+            const div = document.createElement("div");
+            div.className = className;
+            div.textContent = text;
+            return div;
+        }
+
+        async function submitForm(event, url, mapper) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const data = Object.fromEntries(new FormData(form).entries());
+            await requestJson(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(mapper(data)),
+            });
+            form.reset();
+            notice("Kayıt eklendi.");
+            await loadData();
+        }
+
+        async function deleteItem(url) {
+            try {
+                await requestJson(url, { method: "DELETE" });
+                notice("Kayıt silindi.");
+                await loadData();
+            } catch (error) { notice(error.message); }
+        }
+
+        function activateView(viewName) {
+            if (!viewName) return;
+            document.querySelectorAll(".nav button").forEach(item => item.classList.remove("active"));
+            document.querySelectorAll(".view").forEach(item => item.classList.remove("active"));
+            const navButton = document.querySelector(`.nav button[data-view="${viewName}"]`);
+            if (navButton) navButton.classList.add("active");
+            document.getElementById(viewName).classList.add("active");
+            document.getElementById("pageTitle").textContent = titles[viewName];
+            document.getElementById("reportsMenu").classList.remove("open");
+        }
+
+        document.querySelectorAll(".nav button[data-view]").forEach(button => {
+            button.addEventListener("click", () => {
+                activateView(button.dataset.view);
+            });
+        });
+
+        document.querySelector(".menu-trigger").addEventListener("click", () => {
+            document.getElementById("reportsMenu").classList.toggle("open");
+        });
+
+        document.getElementById("teacherForm").addEventListener("submit", event => {
+            submitForm(event, "/api/teachers", data => ({
+                name: data.name.trim(),
+                branch: data.branch.trim(),
+                max_weekly_hours: Number(data.max_weekly_hours),
+            })).catch(error => notice(error.message));
+        });
+
+        document.getElementById("lessonForm").addEventListener("submit", event => {
+            submitForm(event, "/api/lessons", data => ({
+                name: data.name.trim(),
+                weekly_hours: Number(data.weekly_hours),
+                level_group: data.level_group,
+            })).catch(error => notice(error.message));
+        });
+
+        document.getElementById("roomForm").addEventListener("submit", event => {
+            submitForm(event, "/api/rooms", data => ({
+                name: data.name.trim(),
+                room_type: data.room_type,
+            })).catch(error => notice(error.message));
+        });
+
+        document.getElementById("availabilityForm").addEventListener("submit", event => {
+            submitForm(event, "/api/teacher-unavailability", data => ({
+                teacher_id: Number(data.teacher_id),
+                day: data.day,
+                hour: Number(data.hour),
+            })).catch(error => notice(error.message));
+        });
+
+        document.getElementById("userForm").addEventListener("submit", event => {
+            submitForm(event, "/api/users", data => ({
+                name: data.name.trim(),
+                role: data.role,
+            })).catch(error => notice(error.message));
+        });
+
+        document.getElementById("classSelect").addEventListener("change", () => {
+            loadSchedule().then(renderAll).catch(error => notice(error.message));
+        });
+
+        document.getElementById("teacherScheduleSelect").addEventListener("change", () => {
+            loadTeacherSchedule().then(renderAll).catch(error => notice(error.message));
+        });
+
+        document.getElementById("classExcelBtn").addEventListener("click", () => {
+            const classId = document.getElementById("classSelect").value;
+            if (!classId) { notice("Önce sınıf seç."); return; }
+            window.location.href = `/api/export/class/${classId}.xlsx`;
+        });
+
+        document.getElementById("classPdfBtn").addEventListener("click", () => {
+            const classId = document.getElementById("classSelect").value;
+            if (!classId) { notice("Önce sınıf seç."); return; }
+            window.location.href = `/api/export/class/${classId}.pdf`;
+        });
+
+        document.getElementById("teacherExcelBtn").addEventListener("click", () => {
+            const teacherId = document.getElementById("teacherScheduleSelect").value;
+            if (!teacherId) { notice("Önce öğretmen seç."); return; }
+            window.location.href = `/api/export/teacher/${teacherId}.xlsx`;
+        });
+
+        document.getElementById("teacherPdfBtn").addEventListener("click", () => {
+            const teacherId = document.getElementById("teacherScheduleSelect").value;
+            if (!teacherId) { notice("Önce öğretmen seç."); return; }
+            window.location.href = `/api/export/teacher/${teacherId}.pdf`;
+        });
+
+        document.getElementById("moveBtn").addEventListener("click", async () => {
+            const classId = document.getElementById("classSelect").value;
+            if (!classId) { notice("Önce sınıf seç."); return; }
+            try {
+                const result = await requestJson("/api/schedule/move", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        class_id: Number(classId),
+                        from_day: document.getElementById("moveFromDay").value,
+                        from_hour: Number(document.getElementById("moveFromHour").value),
+                        to_day: document.getElementById("moveToDay").value,
+                        to_hour: Number(document.getElementById("moveToHour").value),
+                    }),
+                });
+                notice(result.message);
+                await loadData();
+            } catch (error) { notice(error.message); }
+        });
+
+        document.getElementById("generateBtn").addEventListener("click", async () => {
+            const classId = document.getElementById("classSelect").value;
+            if (!classId) { notice("Önce sınıf seç."); return; }
+            try {
+                const result = await requestJson(`/api/generate-schedule/${classId}`, { method: "POST" });
+                notice(`${result.message}. Yerleşen saat: ${result.placed_hours}`);
+                await loadData();
+            } catch (error) { notice(error.message); }
+        });
+
+        document.getElementById("generateAllBtn").addEventListener("click", async () => {
+            try {
+                notice("Tüm sınıflar için program hazırlanıyor...");
+                const result = await requestJson("/api/generate-schedules", { method: "POST" });
+                notice(`${result.message}. Sınıf: ${result.class_count}, toplam saat: ${result.total_hours}`);
+                await loadData();
+            } catch (error) { notice(error.message); }
+        });
+
+        document.getElementById("clearBtn").addEventListener("click", async () => {
+            const classId = document.getElementById("classSelect").value;
+            if (!classId) { notice("Önce sınıf seç."); return; }
+            try {
+                const result = await requestJson(`/api/schedule/${classId}`, { method: "DELETE" });
+                notice(`${result.message}. Silinen saat: ${result.deleted}`);
+                await loadData();
+            } catch (error) { notice(error.message); }
+        });
+
+        document.getElementById("clearAllBtn").addEventListener("click", async () => {
+            try {
+                const result = await requestJson("/api/schedules", { method: "DELETE" });
+                notice(`${result.message}. Silinen saat: ${result.deleted}`);
+                await loadData();
+            } catch (error) { notice(error.message); }
+        });
+
+        document.getElementById("refreshBtn").addEventListener("click", () => {
+            loadData().then(() => notice("Veriler yenilendi.")).catch(error => notice(error.message));
+        });
+
+        loadData(false).catch(error => notice(error.message));
+    </script>
+</body>
+</html>
